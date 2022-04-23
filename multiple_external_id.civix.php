@@ -449,5 +449,11 @@ function _multiple_external_id_civix_civicrm_alterSettingsFolders(&$metaDataFold
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
  */
 function _multiple_external_id_civix_civicrm_entityTypes(&$entityTypes) {
-  $entityTypes = array_merge($entityTypes, []);
+  $entityTypes = array_merge($entityTypes, [
+    'CRM_MultipleExternalId_DAO_ExternalId' => [
+      'name' => 'ExternalId',
+      'class' => 'CRM_MultipleExternalId_DAO_ExternalId',
+      'table' => 'civicrm_external_id',
+    ],
+  ]);
 }

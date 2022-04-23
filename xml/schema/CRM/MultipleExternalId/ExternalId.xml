@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<table>
+  <base>CRM/MultipleExternalId</base>
+  <class>ExternalId</class>
+  <name>civicrm_external_id</name>
+  <comment>FIXME</comment>
+  <log>true</log>
+
+  <field>
+    <name>id</name>
+    <type>int unsigned</type>
+    <required>true</required>
+    <comment>Unique ExternalId ID</comment>
+    <html>
+      <type>Number</type>
+    </html>
+  </field>
+  <primaryKey>
+    <name>id</name>
+    <autoincrement>true</autoincrement>
+  </primaryKey>
+
+  <field>
+    <name>contact_id</name>
+    <type>int unsigned</type>
+    <comment>FK to Contact</comment>
+  </field>
+  <field>
+    <name>external_identifier</name>
+    <type>varchar</type>
+    <length>64</length>
+    <html>
+      <type>Text</type>
+      <size>8</size>
+      <label>External Identifier</label>
+    </html>
+
+    <import>true</import>
+    <headerPattern>/external\s?id/i</headerPattern>
+    <dataPattern>/^\d{11,}$/</dataPattern>
+    <comment>Unique trusted external ID (generally from a legacy app/datasource). Particularly useful for deduping operations.</comment>
+    <add>1.1</add>
+  </field>
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
+
+</table>
