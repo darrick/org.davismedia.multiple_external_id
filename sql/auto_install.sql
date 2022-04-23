@@ -36,8 +36,12 @@ SET FOREIGN_KEY_CHECKS=1;
 CREATE TABLE `civicrm_external_id` (
   `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique ExternalId ID',
   `contact_id` int unsigned COMMENT 'FK to Contact',
-  `external_identifier` varchar(64) COMMENT 'Unique trusted external ID (generally from a legacy app/datasource). Particularly useful for deduping operations.',
+  `external_id` varchar(64) COMMENT 'Unique trusted external ID (generally from a legacy app/datasource). Particularly useful for deduping operations.',
+  `external_id_type_id` int unsigned COMMENT 'Which External ID type does this External ID belong to.',
   PRIMARY KEY (`id`),
+  INDEX `UI_external_id_type_id`(external_id_type_id),
   CONSTRAINT FK_civicrm_external_id_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE
 )
 ENGINE=InnoDB;
+
+

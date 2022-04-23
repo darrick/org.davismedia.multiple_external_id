@@ -146,7 +146,7 @@ class CRM_MultipleExternalId_Upgrader_Base {
     $tplFile = CRM_Utils_File::isAbsolute($tplFile) ? $tplFile : $this->extensionDir . DIRECTORY_SEPARATOR . $tplFile;
     $smarty = CRM_Core_Smarty::singleton();
     $smarty->assign('domainID', CRM_Core_Config::domainID());
-    CRM_Utils_File::sourceSQLFile(
+    CRM_Utils_File::runSQLQuery(
       CIVICRM_DSN, $smarty->fetch($tplFile), NULL, TRUE
     );
     return TRUE;

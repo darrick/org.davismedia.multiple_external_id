@@ -26,14 +26,20 @@
     <type>int unsigned</type>
     <comment>FK to Contact</comment>
   </field>
+  <foreignKey>
+    <name>contact_id</name>
+    <table>civicrm_contact</table>
+    <key>id</key>
+    <onDelete>CASCADE</onDelete>
+  </foreignKey>
   <field>
-    <name>external_identifier</name>
+    <name>external_id</name>
     <type>varchar</type>
     <length>64</length>
     <html>
       <type>Text</type>
       <size>8</size>
-      <label>External Identifier</label>
+      <label>External ID</label>
     </html>
 
     <import>true</import>
@@ -42,11 +48,23 @@
     <comment>Unique trusted external ID (generally from a legacy app/datasource). Particularly useful for deduping operations.</comment>
     <add>1.1</add>
   </field>
-  <foreignKey>
-    <name>contact_id</name>
-    <table>civicrm_contact</table>
-    <key>id</key>
-    <onDelete>CASCADE</onDelete>
-  </foreignKey>
+  <field>
+    <name>external_id_type_id</name>
+    <title>External ID Type</title>
+    <type>int unsigned</type>
+    <comment>Which External ID type does this External ID belong to.</comment>
+    <add>3.2</add>
+    <pseudoconstant>
+      <optionGroupName>external_id_type</optionGroupName>
+    </pseudoconstant>
+    <html>
+      <type>Select</type>
+    </html>
+  </field>
+  <index>
+    <name>UI_external_id_type_id</name>
+    <fieldName>external_id_type_id</fieldName>
+    <add>3.2</add>
+  </index>
 
 </table>
