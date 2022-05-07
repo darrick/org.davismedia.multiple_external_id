@@ -47,25 +47,17 @@ class CRM_MultipleExternalId_BAO_ExternalId extends CRM_MultipleExternalId_DAO_E
     }
 
     $ids = self::allExternalIds($contactID);
+
+    $existing = [];
+    foreach ($ids as $key => $value) {
+      $existing[$key] = $value['external_id'];
+    }
+
     foreach ($params as $key => $values) {
-      $id = $values['id'] ?? NULL;
-      if (array_key_exists($id, $ids)) {
-        unset($ids[$id]);
-      }
-      if (empty($values['id']) && is_array($ids) && !empty($ids)) {
-        foreach ($ids as $id => $value) {
-          if (($value['external_id_type_id'] == $values['external_id_type_id'])) {
-            $values['id'] = $id;
-            unset($ids[$id]);
-          }
-        }
-      }
-      if (!empty($values['external_id'])) {
+      if (!empty($values['external_id']) and !array_search($values['external_id'], $existing)) {
         $values['contact_id'] = $contactID;
+        $values['external_id_type'] = 1;
         self::create($values);
-      }
-      elseif ($skipDelete && !empty($values['id'])) {
-        self::del($values['id']);
       }
     }
   }
@@ -137,7 +129,7 @@ class CRM_MultipleExternalId_BAO_ExternalId extends CRM_MultipleExternalId_DAO_E
     }
 
     $query = '
-SELECT  id, external_id_type_id
+SELECT  id, external_id_type_id, external_id
   FROM  civicrm_external_id
  WHERE  civicrm_external_id.contact_id = %1';
     $params = [1 => [$id, 'Integer']];
@@ -149,6 +141,7 @@ SELECT  id, external_id_type_id
       $values = [
         'id' => $dao->id,
         'external_id_type_id' => $dao->external_id_type_id,
+        'external_id' => $dao->external_id,
       ];
 
       if ($updateBlankLocInfo) {
