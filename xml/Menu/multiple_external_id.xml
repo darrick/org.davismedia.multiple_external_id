@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/external_id/contacttab</path>
+    <page_callback>CRM_MultipleExternalId_Page_ContactTab</page_callback>
+    <title>ContactTab</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
