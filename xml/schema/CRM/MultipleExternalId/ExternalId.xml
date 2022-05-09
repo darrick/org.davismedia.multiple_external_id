@@ -66,5 +66,10 @@
     <fieldName>external_id_type_id</fieldName>
     <add>3.2</add>
   </index>
+    <index>
+    <name>index_contact_id_external_id</name>
+    <fieldName>contact_id</fieldName>
+    <fieldName>external_id</fieldName>
+  </index>
 
 </table>

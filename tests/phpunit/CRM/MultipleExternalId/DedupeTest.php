@@ -20,7 +20,7 @@ use Civi\Test\CiviEnvBuilder;
  *
  * @group headless
  */
-class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class CRM_MultipleExternalId_DedupeTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
 
   use \Civi\Test\Api3TestTrait;
 
@@ -37,6 +37,16 @@ class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase imp
    * @var int
    */
   protected $groupID;
+
+  /**
+   * Contacts created for the test.
+   *
+   * Overlaps contactIds....
+   *
+   * @var array
+   */
+  protected $contacts = [];
+
   /**
    * Setup used when HeadlessInterface is implemented.
    *
@@ -94,13 +104,15 @@ class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase imp
       'is_reserved' => 0,
     ]);
 
-    foreach (['multiple_external_id'] as $field) {
+    foreach (['external_id'] as $field) {
       $rules[$field] = $this->callAPISuccess('Rule', 'create', [
         'dedupe_rule_group_id' => $ruleGroup['id'],
         'rule_weight' => 10,
         'rule_field' => $field,
+        'rule_table' => 'civicrm_external_id',
       ]);
     }
+
     $foundDupes = CRM_Dedupe_Finder::dupesInGroup($ruleGroup['id'], $this->groupID);
     $this->assertCount(1, $foundDupes);
   }
@@ -129,7 +141,7 @@ class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase imp
         'contact_type' => 'Individual',
         'api.ExternalId.create' => [
           'external_id' => 'duplicate',
-          ],
+        ],
       ],
       [
         'first_name' => 'bob',
@@ -137,7 +149,7 @@ class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase imp
         'contact_type' => 'Individual',
         'api.ExternalId.create' => [
           'external_id' => 'duplicate',
-          ],
+        ],
       ],
     ];
 
@@ -156,6 +168,6 @@ class CRM_MultipleExternalId_DedupeTest extends  \PHPUnit\Framework\TestCase imp
     // verify that all contacts have been created separately
     $this->assertEquals(count($this->contactIDs), 2, 'Check for number of contacts.');
 
-
   }
+
 }
