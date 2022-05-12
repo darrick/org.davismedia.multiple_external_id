@@ -23,16 +23,16 @@ function multiple_external_id_civicrm_dupeQuery($baoObject, $op, &$objectData) {
 
 function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResults, $contextParams) {
   $params = array_intersect_key($dedupeParams, ['civicrm_contact' => 1, 'contact_type' => 1]);
+
   if (count($params) and array_key_exists('external_identifier', $params['civicrm_contact'])) {
 
     try {
-      $result = civicrm_api3('ExternalId', 'get', [
-          'external_id' => $params['civicrm_contact']['external_identifier'],
-          'external_id_type' => 1,
-          'return' => 'contact_id',
-      ]);
-      if ($result['is_error'] == 0) {
-        foreach ($result['values'] as $value) {
+      $result = \Civi\Api4\ExternalId::get()
+        ->addSelect('contact_id')
+        ->addWhere('external_id', '=', $params['civicrm_contact']['external_identifier'])
+        ->execute();
+      if ($result->count()) {
+        foreach ($result as $value) {
           $dedupeResults['ids'][] = $value['contact_id'];
         }
         $dedupeResults['handled'] = TRUE;
@@ -45,23 +45,27 @@ function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResu
 
 function multiple_external_id_civicrm_import( $object, $usage, &$objectRef, &$params ) {
   if ($object == 'Contact') {
-    $result = civicrm_api3('Contact', 'getsingle', [
-        'contact_id' => $params['contactID'],
-        'return' => ['contact_id', 'external_identifier'],
-    ]);
+    try {
+      $contacts = \Civi\Api4\Contact::get()
+        ->addSelect('external_identifier')
+        ->addWhere('id', '=', $params['contactID'])
+        ->execute();
 
-    if ($result['is_error'] == 0) {
-      $external_params = [
-        [
-          'external_id' => $result['external_identifier'],
-        ],
-      ];
+      if (!empty($contacts) and !empty($contacts[0]['external_identifier'])) {
+        $external_params = [
+          [
+            'external_id' => $contacts[0]['external_identifier'],
+          ],
+        ];
 
-      CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
-      $result = civicrm_api3('Contact', 'create', [
-          'id' => $params['contactID'],
-          'external_identifier' => '',
-      ]);
+          CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
+          $results = \Civi\Api4\Contact::update()
+            ->addValue('external_identifier', '')
+            ->addWhere('id', '=', $params['contactID'])
+            ->execute();
+      }
+    }
+    catch (CiviCRM_API3_Exception $e) {
     }
   }
 }

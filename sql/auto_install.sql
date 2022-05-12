@@ -40,8 +40,7 @@ CREATE TABLE `civicrm_external_id` (
   `external_id_type_id` int unsigned COMMENT 'Which External ID type does this External ID belong to.',
   PRIMARY KEY (`id`),
   INDEX `UI_external_id_type_id`(external_id_type_id),
+  INDEX `index_contact_id_external_id`(contact_id, external_id),
   CONSTRAINT FK_civicrm_external_id_contact_id FOREIGN KEY (`contact_id`) REFERENCES `civicrm_contact`(`id`) ON DELETE CASCADE
 )
 ENGINE=InnoDB;
-
-
