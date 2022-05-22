@@ -11,6 +11,12 @@ function multiple_external_id_civicrm_dupeQuery($baoObject, $op, &$objectData) {
     case 'dedupeIndexes':
       break;
 
+    case 'table':
+  //\Drupal::logger('my_module')->notice(print_r($baoObject, TRUE));
+  //\Drupal::logger('my_module')->notice(print_r($objectData, TRUE));
+
+      break;
+
     case 'supportedFields':
       foreach ($objectData as $contact_type => $fields) {
         $objectData[$contact_type]['civicrm_external_id'] = [
@@ -22,6 +28,8 @@ function multiple_external_id_civicrm_dupeQuery($baoObject, $op, &$objectData) {
 }
 
 function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResults, $contextParams) {
+  //\Drupal::logger('my_module')->notice(print_r($dedupeResults, TRUE));
+  //\Drupal::logger('my_module')->notice(print_r($dedupeParams, TRUE));
   $params = array_intersect_key($dedupeParams, ['civicrm_contact' => 1, 'contact_type' => 1]);
 
   if (count($params) and array_key_exists('external_identifier', $params['civicrm_contact'])) {
@@ -41,11 +49,12 @@ function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResu
     catch (CiviCRM_API3_Exception $e) {
     }
   }
+  //\Drupal::logger('my_module')->notice(print_r($dedupeResults, TRUE));
 }
 
 function multiple_external_id_civicrm_import( $object, $usage, &$objectRef, &$params ) {
   if ($object == 'Contact') {
-    try {
+    //try {
       $contacts = \Civi\Api4\Contact::get()
         ->addSelect('external_identifier')
         ->addWhere('id', '=', $params['contactID'])
@@ -58,15 +67,15 @@ function multiple_external_id_civicrm_import( $object, $usage, &$objectRef, &$pa
           ],
         ];
 
-          CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
-          $results = \Civi\Api4\Contact::update()
-            ->addValue('external_identifier', '')
-            ->addWhere('id', '=', $params['contactID'])
-            ->execute();
+        CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
+        $results = \Civi\Api4\Contact::update()
+          ->addValue('external_identifier', '')
+          ->addWhere('id', '=', $params['contactID'])
+          ->execute();
       }
-    }
-    catch (CiviCRM_API3_Exception $e) {
-    }
+    //}
+    //catch (CiviCRM_API3_Exception $e) {
+    //}
   }
 }
 
