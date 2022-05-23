@@ -223,7 +223,7 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
     $userJobID = UserJob::create()->setValues([
       'metadata' => [
         'submitted_values' => array_merge([
-          'contactType' => CRM_Import_Parser::CONTACT_INDIVIDUAL,
+          'contactType' => CRM_Import_Parser::CONTACT_ORGANIZATION,
           'contactSubType' => '',
           'doGeocodeAddress' => 0,
           'dataSource' => 'CRM_Import_DataSource_SQL',
