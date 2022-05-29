@@ -12,8 +12,8 @@ function multiple_external_id_civicrm_dupeQuery($baoObject, $op, &$objectData) {
       break;
 
     case 'table':
-  //\Drupal::logger('my_module')->notice(print_r($baoObject, TRUE));
-  //\Drupal::logger('my_module')->notice(print_r($objectData, TRUE));
+      //\Drupal::logger('my_module')->notice(print_r($baoObject, TRUE));
+      //\Drupal::logger('my_module')->notice(print_r($objectData, TRUE));
 
       break;
 
@@ -52,27 +52,27 @@ function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResu
   //\Drupal::logger('my_module')->notice(print_r($dedupeResults, TRUE));
 }
 
-function multiple_external_id_civicrm_import( $object, $usage, &$objectRef, &$params ) {
+function multiple_external_id_civicrm_import($object, $usage, &$objectRef, &$params) {
   if ($object == 'Contact') {
     //try {
-      $contacts = \Civi\Api4\Contact::get()
-        ->addSelect('external_identifier')
-        ->addWhere('id', '=', $params['contactID'])
-        ->execute();
+    $contacts = \Civi\Api4\Contact::get()
+      ->addSelect('external_identifier')
+      ->addWhere('id', '=', $params['contactID'])
+      ->execute();
 
-      if (!empty($contacts) and !empty($contacts[0]['external_identifier'])) {
-        $external_params = [
+    if (!empty($contacts) and !empty($contacts[0]['external_identifier'])) {
+      $external_params = [
           [
             'external_id' => $contacts[0]['external_identifier'],
           ],
-        ];
+      ];
 
-        CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
-        $results = \Civi\Api4\Contact::update()
-          ->addValue('external_identifier', '')
-          ->addWhere('id', '=', $params['contactID'])
-          ->execute();
-      }
+      CRM_MultipleExternalId_BAO_ExternalId::process($external_params, $params['contactID'], FALSE);
+      $results = \Civi\Api4\Contact::update()
+        ->addValue('external_identifier', '')
+        ->addWhere('id', '=', $params['contactID'])
+        ->execute();
+    }
     //}
     //catch (CiviCRM_API3_Exception $e) {
     //}
@@ -127,7 +127,7 @@ function multiple_external_id_civicrm_merge($type, &$data, $mainId = NULL, $othe
       $data[] = "DELETE FROM civicrm_external_id WHERE contact_id = $otherId";
       break;
 
-   case 'batch':
+    case 'batch':
       unset($data['migration_info']['move_rel_table_external_id']);
       break;
 

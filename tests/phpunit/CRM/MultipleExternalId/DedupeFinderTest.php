@@ -1,7 +1,5 @@
 <?php
 
-use CRM\MultipleExternalId\AbstractTest;
-
 /**
  * Class CRM_Dedupe_DedupeMergerTest
  *

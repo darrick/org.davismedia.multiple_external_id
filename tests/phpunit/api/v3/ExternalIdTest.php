@@ -56,7 +56,7 @@ class api_v3_ExternalIdTest extends \PHPUnit\Framework\TestCase implements Headl
     ]);
     $this->assertTrue(is_numeric($created['id']));
 
-    $get = $this->callAPISuccess('ExternalId', 'get', []);
+    $get = $this->callAPISuccess('ExternalId', 'get', ['external_id' => "hello"]);
     $this->assertEquals(1, $get['count']);
     $this->assertEquals(1, $get['values'][$created['id']]['contact_id']);
 

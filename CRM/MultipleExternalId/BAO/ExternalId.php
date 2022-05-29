@@ -13,7 +13,7 @@ class CRM_MultipleExternalId_BAO_ExternalId extends CRM_MultipleExternalId_DAO_E
     return self::writeRecord($params);
   }
 
-   /**
+  /**
    * Create ExternalId.
    *
    * If called in a legacy manner this, temporarily, fails back to calling the legacy function.
@@ -153,6 +153,5 @@ SELECT  id, external_id_type_id, external_id
     }
     return $external_ids;
   }
-
 
 }

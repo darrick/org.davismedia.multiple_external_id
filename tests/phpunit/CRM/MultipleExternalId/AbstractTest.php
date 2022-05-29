@@ -36,6 +36,7 @@ class CRM_MultipleExternalId_AbstractTest extends \PHPUnit\Framework\TestCase im
     parent::setUp();
 
   }
+
   /**
    * Setup used when HeadlessInterface is implemented.
    *
@@ -233,4 +234,3 @@ class CRM_MultipleExternalId_AbstractTest extends \PHPUnit\Framework\TestCase im
   }
 
 }
-
