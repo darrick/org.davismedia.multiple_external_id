@@ -1,6 +1,5 @@
 <?php
 
-use CRM\MultipleExternalId\AbstractTest;
 
 /**
  * Class CRM_Dedupe_DedupeMergerTest
@@ -126,7 +125,7 @@ class CRM_MultipleExternalId_MergerTest extends CRM_MultipleExternalId_AbstractT
       $contact = $this->callApiSuccess('Contact', 'getsingle', [
         'id' => $contacts['main_id'],
         'api.ExternalId.get' => [],
-        ]);
+      ]);
     }
 
     $stats = $this->callAPISuccess('Dedupe', 'getstatistics', [
@@ -138,6 +137,4 @@ class CRM_MultipleExternalId_MergerTest extends CRM_MultipleExternalId_AbstractT
     $this->assertEquals(count($pnDupePairs), 0, 'Check number of remaining dupe pairs in prev next cache.');
   }
 
-
 }
-
