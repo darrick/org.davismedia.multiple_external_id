@@ -71,22 +71,22 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
     parent::tearDown();
   }
 
-  public function createRuleGroup(): void {
+  public function createRuleGroup($dedupeFields = [], $contactType = "Individual", $fieldWeights = [], $ruleWeight = NULL): void {
     $ruleGroup = $this->callAPISuccess('RuleGroup', 'create', [
-      'contact_type' => 'Individual',
-      'threshold' => 10,
+      'contact_type' => $contactType,
+      'threshold' => $ruleWeight ?? 10,
       'used' => 'General',
       'name' => 'TestRule',
       'title' => 'TestRule',
       'is_reserved' => 0,
     ]);
 
-    foreach (['organization_name', 'external_id'] as $field) {
+    foreach ($dedupeFields as $table => $field) {
       $rules[$field] = $this->callAPISuccess('Rule', 'create', [
         'dedupe_rule_group_id' => $ruleGroup['id'],
-        'rule_weight' => 10,
+        'rule_weight' => $fieldWeights[$field] ?? 10,
         'rule_field' => $field,
-        'rule_table' => 'civicrm_external_id',
+        'rule_table' => $table,
       ]);
     }
 
@@ -108,7 +108,7 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
       'email' => 'info@cf.org',
     ], $params);
     $this->runImport($originalValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID);
-    $result = $this->callAPISuccessGetSingle('Contact', $originalValues);
+    $result = $this->callAPISuccessGetSingle('Contact', array_diff($originalValues, ['external_identifier' => 1]));
     return [$originalValues, $result];
   }
 
@@ -132,50 +132,65 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
   /**
    * Test import parser will update based on a rule match.
    *
-   * In this case the contact has no external identifier.
+   * Match passed in external_identifier with multiple_id via hook_findDuplicates.
    *
    * @throws \CRM_Core_Exception
    */
   public function testImportParserWithUpdateWithExternalIdentifier(): void {
-    $this->createRuleGroup();
+    // Setup our base contact with external_id.
     [$originalValues, $result] = $this->setUpBaseContact([
-      'api.ExternalId.create' => [
-        'external_id' => '1',
-      ],
+      'external_identifier' => "1",
     ]);
-    unset($originalValues['api.ExternalId.create']);
-    $originalValues['organization_name'] = "Davis Media Access";
-    $originalValues['email'] = 'info2@cf.org';
-    $originalValues['external_identifier'] = '1';
-    $this->runImport($originalValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID, [], NULL, $this->_ruleGroupId);
-    $originalValues['id'] = $result['id'];
+
+    // Contact to import.
+    $importContactValues = [
+      'organization_name' => 'Davis Media Access',
+      'email' => 'info2@cf.org',
+      'external_identifier' => "1",
+    ];
+
+    // Update the base contact.
+    $this->runImport($importContactValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID);
+
+    // Check to make sure it was updated.
     $this->assertEquals('info2@cf.org', $this->callAPISuccessGetValue('Contact', ['id' => $result['id'], 'return' => 'email']));
-    unset($originalValues['external_identifier']);
-    $this->callAPISuccessGetSingle('Contact', $originalValues);
   }
 
   /**
    * Test import parser will update based on a rule match.
    *
-   * In this case the contact has no external identifier.
+   * Match will be via rule and not external_identifier.
    *
    * @throws \CRM_Core_Exception
    */
   public function testImportParserWithUpdateWithDifferentExternalIdentifier(): void {
-    $this->createRuleGroup();
-    [$originalValues, $result] = $this->setUpBaseContact([
-      'api.ExternalId.create' => [
-        'external_id' => '1',
+    // Create rule to match on either legal_name or external_id.
+    $this->createRuleGroup(
+      [
+        'civicrm_contact' => 'legal_name',
+        'civicrm_external_id' => 'external_id',
       ],
+      'Organization',
+    );
+
+    [$originalValues, $result] = $this->setUpBaseContact([
+      'legal_name' => "Davis Media Access",
+      'external_identifier' => '1',
     ]);
-    unset($originalValues['api.ExternalId.create']);
-    $originalValues['email'] = 'info2@cf.org';
-    $originalValues['external_identifier'] = '5';
-    $this->runImport($originalValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID, [], NULL, $this->_ruleGroupId);
-    $originalValues['id'] = $result['id'];
+
+    // Contact to import.
+    $importContactValues = [
+      'organization_name' => 'Davis Media Access',
+      'legal_name' => 'Davis Media Access',
+      'email' => 'info2@cf.org',
+      'external_identifier' => "5",
+    ];
+
+    $this->runImport($importContactValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID, [], NULL, $this->_ruleGroupId);
+
     $this->assertEquals('info2@cf.org', $this->callAPISuccessGetValue('Contact', ['id' => $result['id'], 'return' => 'email']));
-    unset($originalValues['external_identifier']);
-    $this->callAPISuccessGetSingle('Contact', $originalValues);
+    $foundDupes = CRM_Dedupe_Finder::dupes($this->_ruleGroupId);
+    $this->assertCount(0, $foundDupes);
   }
 
   /**

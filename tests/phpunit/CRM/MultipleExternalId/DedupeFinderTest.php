@@ -10,12 +10,13 @@ class CRM_MultipleExternalId_DedupeFinderTest extends CRM_MultipleExternalId_Abs
   /**
    * Test dupesByParams function.
    *
+   * Test that external_identifier matches via hook_findDuplicates.
+   *
    * @throws \CRM_Core_Exception
    */
   public function testDupesByParams() {
 
     $this->createDupeContacts();
-    $this->createRuleGroup();
 
     $fields = [
       'first_name' => 'bob',
@@ -26,7 +27,7 @@ class CRM_MultipleExternalId_DedupeFinderTest extends CRM_MultipleExternalId_Abs
     $ids = CRM_Contact_BAO_Contact::getDuplicateContacts($fields, 'Individual', 'General', [], TRUE, NULL, ['event_id' => 1]);
 
     // Check with default Individual-General rule
-    $this->assertEquals(count($ids), 2, 'Check Individual-General rule for dupesByParams().');
+    $this->assertEquals(2, count($ids), 'Check Individual-General rule for dupesByParams().');
 
   }
 
