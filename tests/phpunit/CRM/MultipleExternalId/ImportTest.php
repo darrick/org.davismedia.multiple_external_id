@@ -27,7 +27,7 @@ use Civi\Api4\UserJob;
  * @package CiviCRM
  * @group headless
  */
-class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface, TransactionalInterface {
+class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
   use \Civi\Test\Api3DocTrait;
   use \Civi\Test\GenericAssertionsTrait;
   use \Civi\Test\DbTestTrait;
@@ -42,6 +42,13 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
   protected $entity = 'Contact';
 
   protected $_ruleGroupId;
+
+  /**
+   * IDs of created contacts.
+   *
+   * @var array
+   */
+  protected $contactIDs = [];
 
   /**
    * Setup used when HeadlessInterface is implemented.
@@ -68,6 +75,11 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
   public function tearDown(): void {
     CRM_Core_DAO::executeQuery("DELETE r FROM civicrm_dedupe_rule_group rg INNER JOIN civicrm_dedupe_rule r ON rg.id = r.dedupe_rule_group_id WHERE rg.is_reserved = 0 AND used = 'General'");
     CRM_Core_DAO::executeQuery("DELETE FROM civicrm_dedupe_rule_group WHERE is_reserved = 0 AND used = 'General'");
+    $contactIDs = array_unique($this->contactIDs);
+    foreach ($contactIDs as $contactID) {
+      $this->contactDelete($contactID);
+    }
+    unset($this->contactIDs);
     parent::tearDown();
   }
 
@@ -109,6 +121,7 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
     ], $params);
     $this->runImport($originalValues, CRM_Import_Parser::DUPLICATE_UPDATE, CRM_Import_Parser::VALID);
     $result = $this->callAPISuccessGetSingle('Contact', array_diff($originalValues, ['external_identifier' => 1]));
+    $this->contactIDs[] = $result['id'];
     return [$originalValues, $result];
   }
 
