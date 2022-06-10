@@ -11,7 +11,6 @@
 
 use Civi\Test\HeadlessInterface;
 use Civi\Test\HookInterface;
-use Civi\Test\TransactionalInterface;
 use Civi\Test\CiviEnvBuilder;
 
 /**
@@ -225,21 +224,45 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
    * @throws \CRM_Core_Exception
    * @throws \CiviCRM_API3_Exception
    */
-  protected function runImport(array $originalValues, $onDuplicateAction, $expectedResult, $mapperLocType = [], $fields = NULL, int $ruleGroupId = NULL): void {
-    if (!$fields) {
-      $fields = array_keys($originalValues);
-    }
+  protected function runImport(array $originalValues, $onDuplicateAction, $expectedResult, $fieldMapping = [], $fields = NULL, int $ruleGroupId = NULL): void {
     $values = array_values($originalValues);
-    $mapper = [];
-    foreach ($fields as $index => $field) {
-      $mapper[] = [$field, $mapperLocType[$index] ?? NULL, $field === 'phone' ? 1 : NULL];
+    // Stand in for row number.
+    $values[] = 1;
+
+    if ($fieldMapping) {
+      $fields = [];
+      foreach ($fieldMapping as $mappedField) {
+        $fields[] = $mappedField['name'];
+      }
+      $mapper = $this->getMapperFromFieldMappingFormat($fieldMapping);
     }
-    $userJobID = $this->getUserJobID(['mapper' => $mapper, 'onDuplicate' => $onDuplicateAction, 'dedupe_rule_id' => $ruleGroupId]);
-    $parser = new CRM_Contact_Import_Parser_Contact($fields);
-    $parser->setUserJobID($userJobID);
+    else {
+      if (!$fields) {
+        $fields = array_keys($originalValues);
+      }
+      $mapper = [];
+      foreach ($fields as $field) {
+        $mapper[] = [
+          $field,
+          in_array($field, ['phone', 'email'], TRUE) ? 'Primary' : NULL,
+          $field === 'phone' ? 1 : NULL,
+        ];
+      }
+    }
+    $this->userJobID = $this->getUserJobID(['mapper' => $mapper, 'onDuplicate' => $onDuplicateAction, 'dedupe_rule_id' => $ruleGroupId]);
+    $parser = new CRM_Contact_Import_Parser_Contact();
+    $parser->setUserJobID($this->userJobID);
     $parser->_dedupeRuleGroupID = $ruleGroupId;
     $parser->init();
-    $this->assertEquals($expectedResult, $parser->import($onDuplicateAction, $values), 'Return code from parser import was not as expected');
+
+    $result = $parser->import($values);
+    $dataSource = new CRM_Import_DataSource_CSV($this->userJobID);
+    if ($result === FALSE && $expectedResult !== FALSE) {
+      // Import is moving away from returning a status - this is a better way to check
+      $this->assertGreaterThan(0, $dataSource->getRowCount([$expectedResult]));
+      return;
+    }
+    $this->assertEquals($expectedResult, $result, 'Return code from parser import was not as expected');
   }
 
   /**
