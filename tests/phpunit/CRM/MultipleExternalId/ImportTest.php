@@ -1,4 +1,5 @@
 <?php
+
 /*
  +--------------------------------------------------------------------+
  | Copyright CiviCRM LLC. All rights reserved.                        |
@@ -27,12 +28,9 @@ use Civi\Api4\UserJob;
  * @group headless
  */
 class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements HeadlessInterface, HookInterface {
-  use \Civi\Test\Api3DocTrait;
-  use \Civi\Test\GenericAssertionsTrait;
-  use \Civi\Test\DbTestTrait;
-  use \Civi\Test\ContactTestTrait;
 
-
+  use Civi\Test\Api3TestTrait;
+  use Civi\Test\ContactTestTrait;
   /**
    * Main entity for the class.
    *
@@ -178,11 +176,11 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
   public function testImportParserWithUpdateWithDifferentExternalIdentifier(): void {
     // Create rule to match on either legal_name or external_id.
     $this->createRuleGroup(
-      [
-        'civicrm_contact' => 'legal_name',
-        'civicrm_external_id' => 'external_id',
-      ],
-      'Organization',
+    [
+      'civicrm_contact' => 'legal_name',
+      'civicrm_external_id' => 'external_id',
+    ],
+  'Organization',
     );
 
     [$originalValues, $result] = $this->setUpBaseContact([
@@ -277,6 +275,7 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
           'contactType' => CRM_Import_Parser::CONTACT_ORGANIZATION,
           'contactSubType' => '',
           'doGeocodeAddress' => 0,
+          'disableUSPS' => 0,
           'dataSource' => 'CRM_Import_DataSource_SQL',
           'sqlQuery' => 'SELECT first_name FROM civicrm_contact',
           'onDuplicate' => CRM_Import_Parser::DUPLICATE_SKIP,
@@ -285,7 +284,7 @@ class CRM_ExtendedId_ImportTest extends \PHPUnit\Framework\TestCase implements H
         ], $submittedValues),
       ],
       'status_id:name' => 'draft',
-      'type_id:name' => 'contact_import',
+      'job_type' => 'contact_import',
     ])->execute()->first()['id'];
     if ($submittedValues['dataSource'] ?? NULL === 'CRM_Import_DataSource') {
       $dataSource = new CRM_Import_DataSource_CSV($userJobID);

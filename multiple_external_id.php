@@ -53,7 +53,7 @@ function multiple_external_id_civicrm_findDuplicates($dedupeParams, &$dedupeResu
 }
 
 function multiple_external_id_civicrm_import($object, $usage, &$objectRef, &$params) {
-  if ($object == 'Contact') {
+  if ($usage == 'process' && $object == 'Contact') {
     //try {
     $contacts = \Civi\Api4\Contact::get()
       ->addSelect('external_identifier')
